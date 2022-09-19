@@ -1,0 +1,15 @@
+{
+  "name": "workbunny/webman-rate-limiter",
+  "type": "library",
+  "license": "MIT",
+  "description": "Webman plugin workbunny/webman-rate-limiter",
+  "require": {
+    "workbunny/storage": "dev-main",
+    "ext-sqlite3": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Workbunny\\WebmanRateLimiter\\": "src"
+    }
+  }
+}
