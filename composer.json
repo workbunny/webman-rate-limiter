@@ -7,9 +7,20 @@
     "workbunny/storage": "dev-main",
     "ext-sqlite3": "*"
   },
+
+  "require-dev": {
+    "workerman/webman-framework": "^1.4",
+    "phpunit/phpunit": "^9.0",
+    "symfony/var-dumper": "^5.4"
+  },
   "autoload": {
     "psr-4": {
       "Workbunny\\WebmanRateLimiter\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
     }
   }
 }
