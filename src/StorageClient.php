@@ -33,7 +33,6 @@ class StorageClient
     /** @var int 桶的最大容量 */
     protected int $capacity;
 
-    protected array $config = [];
 
     public function __construct(?array $config = null)
     {
