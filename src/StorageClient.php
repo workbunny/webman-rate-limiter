@@ -6,7 +6,7 @@ use SQLite3Result;
 use WorkBunny\Storage\Driver;
 
 /**
- * @desc 基于SQLite的 令牌桶缓存机制
+ * @desc 基于SQLite的 令牌桶算法机制
  * @date 2022/9/19
  * @author sunsgne
  */
@@ -19,24 +19,51 @@ class StorageClient
     /** @var string 表名及数据文件名称 */
     protected static string $dbFileName = 'rate-limit';
 
-
+    /** @var int 秒转为纳秒 */
     protected static int $s2ns = 1000000000;
 
-    public function __construct()
+    /** @var string sqlite数据库文件地址 */
+    protected string $filename;
+
+    /** @var string sqlite数据库文件加密秘钥 */
+    protected string $encryptionKey;
+
+    /** @var int 装满桶所需的时间 */
+    protected int $seconds;
+    /** @var int 桶的最大容量 */
+    protected int $capacity;
+
+    protected array $config = [];
+
+    public function __construct(?array $config = null)
     {
+        $config         = $config ?? (
+        function_exists('config') ?
+            config("plugin.workbunny.webman-rate-limiter.app", []) :
+            []
+        );
+
+        $this->capacity = $config["bucket"]["capacity"] ?? 60;
+        $this->seconds  = $config["bucket"]["seconds"] ?? 60;
+
+        $this->encryptionKey = $config["sqlite"]["encryptionKey"] ?? "";
+        $this->filename      = $config["sqlite"]["dbFilePath"] ?? "";
+
+
+        /** 示例化SQLite客户端，并导入表结构 */
         if (!(self::$client ?? null instanceof Driver)) {
             self::$client = new Driver([
-                'filename'      => dirname(__DIR__) . "/src/db/" . self::$dbFileName . ".db",
+                'filename'      => $this->filename,
                 'flags'         => SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE,
-                'encryptionKey' => ""
+                'encryptionKey' => $this->encryptionKey
             ]);
             self::$client->create(self::$dbFileName, [
-                'key'         => [
+                'key'        => [
                     'VARCHAR',
                     'PRIMARY KEY',
                     'NOT NULL',
                 ],
-                'capacity'    => [
+                'capacity'   => [
                     'INT(5)',
                     'NOT NULL',
                 ],
@@ -51,62 +78,24 @@ class StorageClient
                 'CREATE INDEX IF NOT EXISTS `rate-limit-key` ON `rate-limit` (`key`);'
             ]);
         }
-    }
 
-    /**
-     * 初始化存储库
-     * @return void
-     * @datetime 2022/9/19 17:14
-     * @author sunsgne
-     */
-    protected function initDB()
-    {
-        /** @var $res * 查询表是否存在 */
-        $res = self::$client->query("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = '".self::$dbFileName."';");
-        $table = 0;
-        if ($res instanceof SQLite3Result) {
-            $table = $res->fetchArray()[0] ?? 0;
-        }
-
-        /** 表不存在，新建表 */
-        if (0 === $table) {
-            self::$client->create(self::$dbFileName, [
-                'key'         => [
-                    'VARCHAR',
-                    'PRIMARY KEY',
-                    'NOT NULL',
-                ],
-                'capacity'    => [
-                    'INT(5)',
-                    'NOT NULL',
-                ],
-                'created_at' => [
-                    'timestamp'
-                ],
-                'updated_at' => [
-                    'timestamp'
-                ],
-
-            ], [
-                'CREATE INDEX `rate-limit-key` ON `rate-limit` (`key`);'
-            ]);
-
-
-        }
 
     }
 
 
     /**
-     * @param string $clientIp
-     * @param int $capacity
-     * @param int $seconds
-     * @return int|mixed
+     * @param string $key
+     * @param int|null $capacity
+     * @param int|null $seconds
+     * @return int
      * @datetime 2022/9/19 17:13
      * @author sunsgne
      */
-    public function handle(string $key, int $capacity, int $seconds)
+    public function handle(string $key, ?int $capacity = null, ?int $seconds = null): int
     {
+        $capacity = $capacity ?? $this->capacity;
+        $seconds  = $seconds ?? $this->seconds;
+        /** @var  $nowTime * 获取高精度时间 */
         $nowTime = hrtime(true);
 
         $res = self::$client->query('SELECT `key` , `capacity` , `updated_at` FROM `rate-limit` WHERE `key` = "' . $key . '";');
@@ -119,25 +108,24 @@ class StorageClient
 
         /** 存在此前KEY的请求 */
         if (isset($ipResult) and !empty($ipResult)) {
-            if (($ipResult["updated_at"] + ($seconds * self::$s2ns) ) < $nowTime) {
+            if (($ipResult["updated_at"] + ($seconds * self::$s2ns)) < $nowTime) {
                 /** 不在限流时间内 ,重置限流请求次数，并正常返回  */
-                $this->resetBucketTime($key , $capacity - 1 , $nowTime);
+                $this->resetBucketTime($key, $capacity - 1, $nowTime);
                 return intval($capacity - 1);
             }
 
 
             $time_passed = ($nowTime - $ipResult["updated_at"]) / self::$s2ns;
-            $allow = $ipResult["capacity"];
-            $allow += $time_passed * ($capacity / $seconds);
+            $allow       = $ipResult["capacity"];
+            $allow       += $time_passed * ($capacity / $seconds);
 
 
-            $capacity = min($capacity , $allow);
+            $capacity = min($capacity, $allow);
 
 
-            if ($capacity >= 1)
-            {
-                $this->updateBucket($key , $capacity -1 , $nowTime);
-                return (int)$capacity -1;
+            if ($capacity >= 1) {
+                $this->updateBucket($key, $capacity - 1, $nowTime);
+                return (int)$capacity - 1;
             }
             /** 限流  */
             return 0;
@@ -145,7 +133,7 @@ class StorageClient
 
         /** 当前请求写入库 并正常返回 */
 
-       $this->createBucket($key , $capacity , $nowTime);
+        $this->createBucket($key, $capacity, $nowTime);
 
         return intval($capacity - 1);
 
@@ -160,11 +148,11 @@ class StorageClient
      * @datetime 2022/9/20 11:56
      * @author zhulianyou
      */
-    public function createBucket(string $key ,int $capacity , int $time)
+    public function createBucket(string $key, int $capacity, int $time)
     {
         self::$client->insert(self::$dbFileName, [
-            'key'         => $key,
-            'capacity'    => $capacity,
+            'key'        => $key,
+            'capacity'   => $capacity,
             'created_at' => $time,
             'updated_at' => $time,
         ]);
@@ -179,7 +167,7 @@ class StorageClient
      * @datetime 2022/9/20 13:57
      * @author zhulianyou
      */
-    public function updateBucket(string $key ,int $capacity , int $time)
+    public function updateBucket(string $key, int $capacity, int $time)
     {
         self::$client->query('UPDATE `rate-limit` SET `capacity` = "' . $capacity . '"  , `updated_at` = "' . $time . '"  WHERE `key` = "' . $key . '";');
     }
@@ -193,9 +181,9 @@ class StorageClient
      * @datetime 2022/9/20 13:57
      * @author zhulianyou
      */
-    public function resetBucketTime(string $key ,int $capacity , int $time)
+    public function resetBucketTime(string $key, int $capacity, int $time)
     {
-        self::$client->query('UPDATE "' .self::$dbFileName. '" SET `capacity` =  "' . $capacity . '" , `updated_at` = "' . $time . '" WHERE `key`= "' . $key . '";');
+        self::$client->query('UPDATE "' . self::$dbFileName . '" SET `capacity` =  "' . $capacity . '" , `updated_at` = "' . $time . '" WHERE `key`= "' . $key . '";');
     }
 
 

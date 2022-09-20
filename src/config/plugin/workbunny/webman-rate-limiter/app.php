@@ -3,7 +3,7 @@ return [
     'enable' => true,
 
     'sqlite' => [
-        "dbPath" => "",
+        "dbFilePath" => dirname(__DIR__) . "/src/db/.db",
         "encryptionKey" => ""
     ],
     'bucket' => [
