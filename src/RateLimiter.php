@@ -145,7 +145,7 @@ class RateLimiter
      * @param int $time 时间戳
      * @return void
      * @datetime 2022/9/20 11:56
-     * @author zhulianyou
+     * @author sunsgne
      */
     public function createBucket(string $key, int $capacity, int $time)
     {
@@ -164,7 +164,7 @@ class RateLimiter
      * @param int $time
      * @return void
      * @datetime 2022/9/20 13:57
-     * @author zhulianyou
+     * @author sunsgne
      */
     public function updateBucket(string $key, int $capacity, int $time)
     {
@@ -178,7 +178,7 @@ class RateLimiter
      * @param int $time
      * @return void
      * @datetime 2022/9/20 13:57
-     * @author zhulianyou
+     * @author sunsgne
      */
     public function resetBucketTime(string $key, int $capacity, int $time)
     {
