@@ -16,7 +16,7 @@ class RateLimiter
     /** @var Driver sqlite驱动 */
     protected static Driver $client;
 
-    /** @var string 表名及数据文件名称 */
+    /** @var string SQLite库表名 */
     protected static string $dbFileName = 'rate-limit';
 
     /** @var int 秒转为纳秒 */
@@ -93,7 +93,7 @@ class RateLimiter
     {
         $capacity = $capacity ?? $this->capacity;
         $seconds  = $seconds ?? $this->seconds;
-        /** @var  $remain * 余下的桶容量 */
+        /** @var  $remain * 此次请求后余下的桶容量 */
         $remain   = $capacity - 1;
 
         /** @var  $nowTime * 获取高精度时间 */
