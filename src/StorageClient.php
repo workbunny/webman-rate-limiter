@@ -133,7 +133,6 @@ class StorageClient
             $capacity = min($capacity , $allow);
 
 
-
             if ($capacity >= 1)
             {
                 $this->updateBucket($key , $capacity -1 , $nowTime);
