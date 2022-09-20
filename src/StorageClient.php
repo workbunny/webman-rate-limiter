@@ -78,8 +78,6 @@ class StorageClient
                 'CREATE INDEX IF NOT EXISTS `rate-limit-key` ON `rate-limit` (`key`);'
             ]);
         }
-
-
     }
 
 
