@@ -36,7 +36,7 @@ class RateLimiter
 
     public function __construct(?array $config = null)
     {
-        $config         = $config ?? (
+        $config = $config ?? (
         function_exists('config') ?
             config("plugin.workbunny.webman-rate-limiter.app", []) :
             []
@@ -84,7 +84,7 @@ class RateLimiter
 
     /**
      * @param string $key 关键key
-     * @param int|null $capacity  桶容量
+     * @param int|null $capacity 桶容量
      * @param int|null $seconds 装满桶需要的时间（s/秒）
      * @return int
      * @datetime 2022/9/19 17:13
@@ -94,6 +94,9 @@ class RateLimiter
     {
         $capacity = $capacity ?? $this->capacity;
         $seconds  = $seconds ?? $this->seconds;
+        /** @var  $remain * 余下的桶容量 */
+        $remain   = $capacity - 1;
+
         /** @var  $nowTime * 获取高精度时间 */
         $nowTime = hrtime(true);
 
@@ -109,19 +112,19 @@ class RateLimiter
         if (isset($ipResult) and !empty($ipResult)) {
             if (($ipResult["updated_at"] + ($seconds * self::$s2ns)) < $nowTime) {
                 /** 不在限流时间内 ,重置限流请求次数，并正常返回  */
-                $this->resetBucketTime($key, $capacity - 1, $nowTime);
-                return intval($capacity - 1);
+                $this->resetBucketTime($key, $remain, $nowTime);
+                return intval($remain);
             }
 
             /** 流速计算  */
             $time_passed = ($nowTime - $ipResult["updated_at"]) / self::$s2ns;
             $allow       = $ipResult["capacity"];
             $allow       += $time_passed * ($capacity / $seconds);
-            $capacity = min($capacity, $allow);
+            $capacity    = min($capacity, $allow);
 
             if ($capacity >= 1) {
                 $this->updateBucket($key, $capacity - 1, $nowTime);
-                return (int)$capacity - 1;
+                return intval($capacity - 1);
             }
             /** 限流  */
             return 0;
@@ -129,9 +132,9 @@ class RateLimiter
 
         /** 当前请求写入库 并正常返回 */
 
-        $this->createBucket($key, $capacity - 1, $nowTime);
+        $this->createBucket($key, $remain, $nowTime);
 
-        return intval($capacity - 1);
+        return intval($remain);
 
     }
 
