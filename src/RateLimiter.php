@@ -83,9 +83,9 @@ class RateLimiter
 
 
     /**
-     * @param string $key
-     * @param int|null $capacity
-     * @param int|null $seconds
+     * @param string $key 关键key
+     * @param int|null $capacity  桶容量
+     * @param int|null $seconds 装满桶需要的时间（s/秒）
      * @return int
      * @datetime 2022/9/19 17:13
      * @author sunsgne
@@ -113,14 +113,11 @@ class RateLimiter
                 return intval($capacity - 1);
             }
 
-
+            /** 流速计算  */
             $time_passed = ($nowTime - $ipResult["updated_at"]) / self::$s2ns;
             $allow       = $ipResult["capacity"];
             $allow       += $time_passed * ($capacity / $seconds);
-
-
             $capacity = min($capacity, $allow);
-
 
             if ($capacity >= 1) {
                 $this->updateBucket($key, $capacity - 1, $nowTime);
