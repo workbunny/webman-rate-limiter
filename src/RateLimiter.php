@@ -10,7 +10,7 @@ use WorkBunny\Storage\Driver;
  * @date 2022/9/19
  * @author sunsgne
  */
-class StorageClient
+class RateLimiter
 {
 
     /** @var Driver sqlite驱动 */
