@@ -46,11 +46,13 @@ class RateLimiter
         $this->seconds  = $config["bucket"]["seconds"] ?? 60;
 
         $this->encryptionKey = $config["sqlite"]["encryptionKey"] ?? "";
-        $this->filename      = $config["sqlite"]["dbFilePath"] ?? "";
+        $this->filename      = $config["sqlite"]["dbFilePath"] ??
+            dirname(__DIR__) . "/src/config/plugin/workbunny/webman-rate-limiter/ExampleDb/rate-limit.db";
 
 
         /** 示例化SQLite客户端，并导入表结构 */
         if (!(self::$client ?? null instanceof Driver)) {
+            dump($this->filename);
             self::$client = new Driver([
                 'filename'      => $this->filename,
                 'flags'         => SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE,
@@ -130,7 +132,7 @@ class RateLimiter
 
         /** 当前请求写入库 并正常返回 */
 
-        $this->createBucket($key, $capacity, $nowTime);
+        $this->createBucket($key, $capacity - 1, $nowTime);
 
         return intval($capacity - 1);
 
