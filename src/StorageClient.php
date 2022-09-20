@@ -130,6 +130,7 @@ class StorageClient
             $allow = $ipResult["capacity"];
             $allow += $time_passed * ($capacity / $seconds);
 
+
             $capacity = min($capacity , $allow);
 
 
