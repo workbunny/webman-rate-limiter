@@ -32,6 +32,53 @@
 
 ## 用法
 
+### 在Webman中使用
+
+1. 配置app.php
+
+```php
+return [
+    'enable' => true,
+
+    /** sqlite 数据库配置 */
+    'sqlite' => [
+        /** 数据库文件地址 */
+        "dbFilePath" => dirname(__DIR__) . "/webman-rate-limiter/ExampleDb/rate-limit.db",
+        /** 加密秘钥 */
+        "encryptionKey" => ""
+    ],
+    /** 令牌桶配置 */
+    'bucket' => [
+        /** 桶的最大容量 */
+        "capacity" => 60,
+        /** 满桶的所需时间 */
+        "seconds" => 60
+    ]
+
+];
+```
+
+2. 在中间件中使用
+
+....
+3. 在任意地方使用
+
+```php
+public function test(Request $request):Response
+    {
+
+        $rate = (new RateLimiter() )->handle("192.168.10.9");
+
+        if ($rate)
+        {
+            return response_success([$rate]);
+        }
+
+        return response_error("429|429");
+    }
+```
+
+
 ## 鸣谢
 
 ## 什么是令牌桶？
@@ -46,4 +93,5 @@
 
 &emsp;&emsp;如果他不听，每次取水就会少一次机会， 当时间过去30秒后他已经没有取水机会了。告诉他**让他滚**，这个时候他就只能眼睁睁的看着别人取水了。他得再等**一分钟**才能去取水。
 
-&emsp;&emsp;综上所述！`一分钟内一个人10秒才能取一次水`
+&emsp;&emsp;综上所述！`一分钟内一个人10秒才能取一次水`......
+
