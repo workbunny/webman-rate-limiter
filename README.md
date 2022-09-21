@@ -32,6 +32,10 @@
 
 ## 特征
 
+- [x] YES
+- [x] YES
+- [x] YES
+- [x] YES
 ## 用法
 
 ### 在Webman中使用
