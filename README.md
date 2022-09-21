@@ -119,6 +119,6 @@ public function test(Request $request):Response
 
 &emsp;&emsp;综上所述！`一分钟内一个人10秒才能取一次水`......
 
-    <a href="https://github.com/workbunny/webman-rate-limiter/blob/main/LICENSE">
-        <img alt="GitHub license" src="http://poser.pugx.org/workbunny/webman-rate-limiter/license">
-    </a>
+<div align="center">
+        <img alt="令牌桶限流结构图" src="https://github.com/workbunny/webman-rate-limiter/blob/main/material/process-1.jpg?raw=true">
+</div>
