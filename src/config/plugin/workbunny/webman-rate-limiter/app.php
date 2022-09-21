@@ -5,7 +5,7 @@ return [
     /** sqlite 数据库配置 */
     'sqlite' => [
         /** 数据库文件地址 */
-        "dbFilePath" => dirname(__DIR__) . "/ExampleDb/rate-limit.db",
+        "dbFilePath" => dirname(__DIR__) . "/webman-rate-limiter/ExampleDb/rate-limit.db",
         /** 加密秘钥 */
         "encryptionKey" => ""
     ],
