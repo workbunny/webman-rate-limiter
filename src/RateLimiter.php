@@ -111,7 +111,7 @@ class RateLimiter
         if (isset($ipResult) and !empty($ipResult)) {
             if (($ipResult["updated_at"] + ($seconds * self::$s2ns)) < $nowTime) {
                 /** 不在限流时间内 ,重置限流请求次数，并正常返回  */
-                $this->resetBucketTime($key, $remain, $nowTime);
+                $this->updateBucket($key, $remain, $nowTime);
                 return intval($remain);
             }
 
@@ -138,7 +138,7 @@ class RateLimiter
     }
 
     /**
-     *
+     * 创建令牌
      * @param string $key 关键key
      * @param int $capacity 容量
      * @param int $time 时间戳
@@ -158,6 +158,7 @@ class RateLimiter
 
 
     /**
+     * 更新令牌
      * @param string $key
      * @param int $capacity
      * @param int $time
@@ -165,23 +166,9 @@ class RateLimiter
      * @datetime 2022/9/20 13:57
      * @author sunsgne
      */
-    public function updateBucket(string $key, int $capacity, int $time)
+    private function updateBucket(string $key, int $capacity, int $time)
     {
         self::$client->query('UPDATE `rate-limit` SET `capacity` = "' . $capacity . '"  , `updated_at` = "' . $time . '"  WHERE `key` = "' . $key . '";');
-    }
-
-
-    /**
-     * @param string $key
-     * @param int $capacity
-     * @param int $time
-     * @return void
-     * @datetime 2022/9/20 13:57
-     * @author sunsgne
-     */
-    public function resetBucketTime(string $key, int $capacity, int $time)
-    {
-        self::$client->query('UPDATE "' . self::$dbFileName . '" SET `capacity` =  "' . $capacity . '" , `updated_at` = "' . $time . '" WHERE `key`= "' . $key . '";');
     }
 
 
