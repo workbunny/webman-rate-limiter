@@ -67,8 +67,25 @@ return [
 ```
 
 2. 在中间件中使用
+3. 
+```php
+class RateLimiter implements MiddlewareInterface
+{
 
-....
+    public function process(Request $request, callable $handler): Response
+    {
+        
+        $token = $request->getRealIp(false);
+//        $token = $request->path();
+//        $token = $request->post("uuid");
+        $rate = (new \Workbunny\WebmanRateLimiter\RateLimiter() )->handle($token);
+
+        return $rate ?   $handler($request) :   \response(
+            ["error_msg" => "请求过于频繁"] ,429  );
+    }
+
+}
+```
 3. 在任意地方使用
 
 ```php
