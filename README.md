@@ -38,6 +38,9 @@
 
 
 ## 用法
+```shell
+composer require workbunny/webman-rate-limiter
+```
 
 ### 在Webman中使用
 
