@@ -166,7 +166,7 @@ class RateLimiter
      * @datetime 2022/9/20 13:57
      * @author sunsgne
      */
-    private function updateBucket(string $key, int $capacity, int $time)
+    private function updateBucket(string $key, int $capacity, int $time): void
     {
         self::$client->query('UPDATE `rate-limit` SET `capacity` = "' . $capacity . '"  , `updated_at` = "' . $time . '"  WHERE `key` = "' . $key . '";');
     }
