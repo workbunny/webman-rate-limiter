@@ -105,7 +105,6 @@ public function test(Request $request):Response
 ```
 
 
-## 鸣谢
 
 
 ## 什么是令牌桶？
