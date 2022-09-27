@@ -97,10 +97,10 @@ public function test(Request $request):Response
 
         if ($rate)
         {
-            return response();
+            return \response(["msg"=>"success"] , 200,[]);
         }
 
-        return response("429|429");
+        return \response(["msg"=>"请求频繁"] , 429,[]);
     }
 ```
 
