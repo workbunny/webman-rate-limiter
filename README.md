@@ -97,10 +97,10 @@ public function test(Request $request):Response
 
         if ($rate)
         {
-            return response_success([$rate]);
+            return response();
         }
 
-        return response_error("429|429");
+        return response("429|429");
     }
 ```
 
