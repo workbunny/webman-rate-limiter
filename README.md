@@ -69,6 +69,7 @@ return [
 ```
 
 2. 在路由中间件中使用
+
 ```php
 class RateLimiter implements MiddlewareInterface
 {
