@@ -6,7 +6,6 @@
   "require": {
     "workbunny/storage": "^1.0"
   },
-
   "require-dev": {
     "workerman/webman-framework": "^1.4",
     "phpunit/phpunit": "^9.0",
